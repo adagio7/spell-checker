@@ -1,4 +1,8 @@
 use clap::Parser;
+use std::path::Path;
+use std::collections::HashSet as Hashset;
+
+mod utils;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -13,8 +17,8 @@ struct Args {
 }
 
 fn main() {
-    let args = Args::parse();
+    // let args = Args::parse();
 
-    println!("Dictionary path: {}", args.dictionary_path);
-    println!("Verbose: {}", args.verbose);
+    let dictionary: Result<Hashset<String>, std::io::Error> = utils::load_dictionary("./src/dictionaries/google-10k-eng.txt");
+    println!("{:?}", dictionary);
 }
