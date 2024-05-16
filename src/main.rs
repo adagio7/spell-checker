@@ -1,4 +1,4 @@
-use clap::{ Parser, arg, command };
+use clap::{ arg, command, value_parser };
 use std::collections::HashSet as Hashset;
 
 mod utils;
@@ -22,8 +22,10 @@ fn main() {
             .arg(
                 arg!(-v --verbose "Prints debug information verbosely")
             )
-            .subcommand(
-                command!("levenshtein").about("Uses the Levenshtein algorithm to spellcheck")
+            .arg(
+                arg!(-m --mode <mode> "Mode to run the spell checker in")
+                    .value_parser(["levenshtein", "damerau-levenshtein", "jaro-winkler", "soundex"])
+                    .default_value("levenshtein")
             )
             .get_matches();
 
