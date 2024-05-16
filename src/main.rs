@@ -1,8 +1,11 @@
 use clap::Parser;
-use std::path::Path;
 use std::collections::HashSet as Hashset;
 
 mod utils;
+mod algorithms;
+
+use algorithms::base::SpellChecker;
+use algorithms::levenshtein::Levenshtein;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -19,6 +22,8 @@ struct Args {
 fn main() {
     // let args = Args::parse();
 
-    let dictionary: Result<Hashset<String>, std::io::Error> = utils::load_dictionary("./src/dictionaries/google-10k-eng.txt");
-    println!("{:?}", dictionary);
+    let dictionary: Result<Hashset<String>, std::io::Error> = utils::load_dictionary("./dictionaries/google-10k-eng.txt");
+
+    let spell_checker = Levenshtein;
+    println!("{:?}", spell_checker.find_suggestions("helo"));
 }
