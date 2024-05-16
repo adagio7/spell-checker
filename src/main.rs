@@ -24,6 +24,9 @@ fn main() {
 
     let dictionary: Result<Hashset<String>, std::io::Error> = utils::load_dictionary("./dictionaries/google-10k-eng.txt");
 
-    let spell_checker = Levenshtein;
+    let spell_checker = Levenshtein{
+        default_matches: 5,
+        dictionary: dictionary.unwrap()
+    };
     println!("{:?}", spell_checker.find_suggestions("helo"));
 }
