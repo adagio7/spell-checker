@@ -6,6 +6,9 @@ use crate::algorithms::base::SpellChecker;
 use crate::algorithms::levenshtein::Levenshtein;
 
 pub fn load_dictionary(filename: &str) -> Result<HashSet<String>> {
+    // Open the file in read-only mode
+    // File is expected to be a list of words separated by newlines
+    
     let file = File::open(filename)
                     .expect("Could not open file");
 
@@ -24,9 +27,10 @@ pub fn create_spellchecker(
         top_matches: usize,
         dictionary: HashSet<String>
     ) -> Option<Box<dyn SpellChecker>>{
+    // Create a spellchecker based on the algorithm provided
+
     match algorithm {
         "levenshtein" => Some(Box::new(Levenshtein::new(top_matches, dictionary)) as Box<dyn SpellChecker>),
         _ => panic!("Algorithm not found")
     }
-
 }
