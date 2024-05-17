@@ -89,7 +89,22 @@ mod tests {
     use std::collections::HashSet;
 
     #[test]
-    fn test_levenshtein_distance() {
+    fn test_levenshtein_distance_for_empty_string() {
+        let dictionary: HashSet<String> = HashSet::from_iter(vec![
+            "kitten".to_string(),
+            "sitting".to_string(),
+            "saturday".to_string(),
+            "sunday".to_string(),
+        ]);
+
+        let spell_checker: Levenshtein = Levenshtein::new(1, dictionary);
+
+        assert_eq!(spell_checker.find_suggestions("").len(), 1);
+        assert_eq!(spell_checker.find_suggestions("").get(0).unwrap().0, 6);
+    }
+
+    #[test]
+    fn test_levenshtein_distance_for_match_equal_zero() {
         let dictionary: HashSet<String> = HashSet::from_iter(vec![
             "kitten".to_string(),
             "sitting".to_string(),
@@ -100,6 +115,79 @@ mod tests {
         let spell_checker: Levenshtein = Levenshtein::new(1, dictionary);
 
         assert_eq!(spell_checker.find_suggestions("kitten")[0].0, 0);
+        assert_eq!(spell_checker.find_suggestions("sitting")[0].0, 0);
+        assert_eq!(spell_checker.find_suggestions("saturday")[0].0, 0);
+        assert_eq!(spell_checker.find_suggestions("sunday")[0].0, 0);
+    }
+
+    #[test]
+    fn test_levenshtein_distance_for_match_equal_one() {
+        let dictionary: HashSet<String> = HashSet::from_iter(vec![
+            "kitten".to_string(),
+            "sitting".to_string(),
+            "saturday".to_string(),
+            "sunday".to_string(),
+        ]);
+
+        let spell_checker: Levenshtein = Levenshtein::new(1, dictionary);
+
+        assert_eq!(spell_checker.find_suggestions("kittens")[0].0, 1);
+        assert_eq!(spell_checker.find_suggestions("sittin")[0].0, 1);
+        assert_eq!(spell_checker.find_suggestions("satyrday")[0].0, 1);
+        assert_eq!(spell_checker.find_suggestions("sundae")[0].0, 1);
+    }
+
+    #[test]
+    fn test_levenshtein_with_n_matching_terms() {
+        let dictionary: HashSet<String> = HashSet::from_iter(vec![
+            "kitten".to_string(),
+            "sitting".to_string(),
+            "saturday".to_string(),
+            "sunday".to_string(),
+        ]);
+
+        let spell_checker: Levenshtein = Levenshtein::new(2, dictionary);
+
+        assert_eq!(spell_checker.find_suggestions("kittens").len(), 2);
+        assert_eq!(spell_checker.find_suggestions("sittin").len(), 2);
+        assert_eq!(spell_checker.find_suggestions("satyrday").len(), 2);
+        assert_eq!(spell_checker.find_suggestions("sundae").len(), 2);
+    }
+
+    #[test]
+    fn test_levenshtein_with_n_matching_terms_and_n_greater_than_dictionary() {
+        let dictionary: HashSet<String> = HashSet::from_iter(vec![
+            "kitten".to_string(),
+            "sitting".to_string(),
+            "saturday".to_string(),
+            "sunday".to_string(),
+        ]);
+
+        let spell_checker: Levenshtein = Levenshtein::new(5, dictionary);
+
+        // Returns all terms in the dictionary
+        assert_eq!(spell_checker.find_suggestions("kittens").len(), 4);
+        assert_eq!(spell_checker.find_suggestions("sittin").len(), 4);
+        assert_eq!(spell_checker.find_suggestions("satyrday").len(), 4);
+        assert_eq!(spell_checker.find_suggestions("sundae").len(), 4);
+    }
+
+    #[test]
+    fn test_levenshtein_top_2_matches() {
+        let dictionary: HashSet<String> = HashSet::from_iter(vec![
+            "kitten".to_string(),
+            "sitting".to_string(),
+            "saturday".to_string(),
+            "sunday".to_string(),
+        ]);
+
+        let spell_checker: Levenshtein = Levenshtein::new(2, dictionary);
+
+        assert_eq!(spell_checker.find_suggestions("kittens")[0].0, 1);
+        assert_eq!(spell_checker.find_suggestions("kittens")[0].1, "kitten".to_string());
+
+        assert_eq!(spell_checker.find_suggestions("kittens")[1].0, 3);
+        assert_eq!(spell_checker.find_suggestions("kittens")[1].1, "sitting".to_string());
     }
 }
 
