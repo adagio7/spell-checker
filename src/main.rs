@@ -1,12 +1,11 @@
-use clap::{ arg, command, value_parser };
+use clap::{ arg, command };
 use std::collections::HashSet as Hashset;
 
 mod utils;
 mod algorithms;
 
-use utils::load_dictionary;
+use utils::{ load_dictionary, create_spellchecker };
 use algorithms::base::SpellChecker;
-use algorithms::levenshtein::Levenshtein;
 
 fn main() {
     // TODO: Let user specify the dictionary module_path!
@@ -23,8 +22,13 @@ fn main() {
                 arg!(-v --verbose "Prints debug information verbosely")
             )
             .arg(
+                arg!(-n --default_matches <n> "Number of default matches to return")
+                    .default_value("5")
+            )
+            .arg(
                 arg!(-m --mode <mode> "Mode to run the spell checker in")
-                    .value_parser(["levenshtein", "damerau-levenshtein", "jaro-winkler", "soundex"])
+                    // Use the ALGORITHMS keys as possible values
+                    // .value_parser(ALGORITHMS.keys().copied().collect::<Vec<&str>>())
                     .default_value("levenshtein")
             )
             .get_matches();
@@ -32,9 +36,12 @@ fn main() {
 
     let dictionary: Result<Hashset<String>, std::io::Error> = load_dictionary(matches.get_one::<String>("dictionary_path").unwrap());
 
-    let spell_checker = Levenshtein{
-        default_matches: 5,
-        dictionary: dictionary.unwrap()
-    };
+    let spell_checker: Box<dyn SpellChecker> = 
+                create_spellchecker(
+                    matches.get_one::<String>("mode").unwrap(),
+                    matches.get_one::<String>("default_matches").unwrap().parse().unwrap(),
+                    dictionary.unwrap()
+                ).unwrap();
+
     println!("{:?}", spell_checker.find_suggestions("helo"));
 }

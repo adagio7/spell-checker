@@ -7,6 +7,18 @@ pub struct Levenshtein {
     pub dictionary: HashSet<String>,
 }
 
+impl Levenshtein {
+    pub fn new(
+        default_matches: usize,
+        dictionary: HashSet<String>,
+    ) -> Self {
+        Levenshtein {
+            default_matches,
+            dictionary,
+        }
+    }
+}
+
 impl SpellChecker for Levenshtein {
     fn find_suggestions(
         &self,
