@@ -81,3 +81,25 @@ impl SpellChecker for Levenshtein {
         top_matches.into_sorted_vec()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::algorithms::base::SpellChecker;
+    use crate::algorithms::levenshtein::Levenshtein;
+    use std::collections::HashSet;
+
+    #[test]
+    fn test_levenshtein_distance() {
+        let dictionary: HashSet<String> = HashSet::from_iter(vec![
+            "kitten".to_string(),
+            "sitting".to_string(),
+            "saturday".to_string(),
+            "sunday".to_string(),
+        ]);
+
+        let spell_checker: Levenshtein = Levenshtein::new(1, dictionary);
+
+        assert_eq!(spell_checker.find_suggestions("kitten")[0].0, 0);
+    }
+}
+
