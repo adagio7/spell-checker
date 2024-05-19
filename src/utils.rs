@@ -25,12 +25,11 @@ pub fn load_dictionary(filename: &str) -> Result<HashSet<String>> {
 pub fn create_spellchecker(
         algorithm: &str,
         top_matches: usize,
-        dictionary: HashSet<String>
     ) -> Option<Box<dyn SpellChecker>>{
     // Create a spellchecker based on the algorithm provided
 
     match algorithm {
-        "levenshtein" => Some(Box::new(Levenshtein::new(top_matches, dictionary)) as Box<dyn SpellChecker>),
+        "levenshtein" => Some(Box::new(Levenshtein::new(top_matches)) as Box<dyn SpellChecker>),
         _ => panic!("Algorithm not found")
     }
 }

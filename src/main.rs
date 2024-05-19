@@ -40,8 +40,7 @@ fn main() {
                 create_spellchecker(
                     matches.get_one::<String>("mode").unwrap(),
                     matches.get_one::<String>("default_matches").unwrap().parse().unwrap(),
-                    dictionary.unwrap()
                 ).unwrap();
 
-    println!("{:?}", spell_checker.find_suggestions("helo"));
+    println!("{:?}", spell_checker.get_matches(&dictionary.unwrap(), "helo"));
 }

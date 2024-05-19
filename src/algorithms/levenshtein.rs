@@ -4,26 +4,25 @@ use std::collections::{ HashSet, BinaryHeap };
 
 pub struct Levenshtein {
     pub default_matches: usize,
-    pub dictionary: HashSet<String>,
 }
 
 impl Levenshtein {
     pub fn new(
         default_matches: usize,
-        dictionary: HashSet<String>,
     ) -> Self {
         Levenshtein {
             default_matches,
-            dictionary,
         }
     }
+
 }
 
 impl SpellChecker for Levenshtein {
-    fn find_suggestions(
+    fn distance(
         &self,
         word: &str,
-    ) -> Vec<(usize, String)> {
+        target: &str,
+    ) -> usize {
         /*
         * The Levenshtein distance is a string metric for measuring the difference between two sequences.
         * It is the minimum number of single-character edits (insertions, deletions, or substitutions) required to change one word into the other.
@@ -31,54 +30,51 @@ impl SpellChecker for Levenshtein {
         *
         * Reference: https://en.wikipedia.org/wiki/Levenshtein_distance
         */ 
-        let mut top_matches: BinaryHeap<(usize, String)> = BinaryHeap::new();
 
-        for potential_match in &self.dictionary {
-            // Note that len(word)+1 is used to include the empty string
-            let mut dp = vec![vec![0; word.len() + 1]; potential_match.len() + 1];
+        // Note that len(word)+1 is used to include the empty string
+        let mut dp: Vec<usize> = (0..=target.len()).collect();
 
-            // Initialize the first row and column to the number of characters in the word
-            for i in 0..=word.len() {
-                dp[0][i] = i;
-            }
+        for i in 1..=word.len() {
+            let mut prev = dp[0];
+            dp[0] = i;
 
-            for i in 0..=potential_match.len() {
-                dp[i][0] = i;
-            }
-
-            for i in 1..=potential_match.len() {
-                for j in 1..=word.len() {
-                    // If chars match, no cost incurred else +1
-                    let cost = if word.chars().nth(j-1) == potential_match.chars().nth(i-1) {
-                        0
-                    } else {
-                        1
-                    };
-
-                    // Compare cheapest operation from deleting, inserting, or replacing
-                    dp[i][j] = std::cmp::min(
-                        dp[i-1][j] + 1,
+            for j in 1..=target.len() {
+                let temp = dp[j];
+                dp[j] = if word.chars().nth(i-1) == target.chars().nth(j-1) {
+                    prev
+                } else {
+                    std::cmp::min(
+                        prev + 1,
                         std::cmp::min(
-                            dp[i][j-1] + 1,
-                            dp[i-1][j-1] + cost
+                            dp[j] + 1,
+                            dp[j-1] + 1
                         )
-                    );
-                }
-            }
-            top_matches.push(
-                (
-                    dp[potential_match.len()][word.len()],
-                    potential_match.clone()
-                )
-            );
-
-            // Ensure only top k matches are stored
-            if top_matches.len() > self.default_matches {
-                top_matches.pop();
+                    )
+                };
+                prev = temp;
             }
         }
 
-        top_matches.into_sorted_vec()
+        dp[target.len()]
+    }
+
+    fn get_matches(
+        &self,
+        dictionary: &HashSet<String>,
+        word: &str,
+    ) -> Vec<(usize, String)> {
+        let mut heap: BinaryHeap<(usize, String)> = BinaryHeap::new();
+
+        for target in dictionary.iter() {
+            let distance = self.distance(word, target);
+            heap.push((distance, target.to_string()));
+
+            if heap.len() > self.default_matches {
+                heap.pop();
+            }
+        }
+
+        heap.into_sorted_vec()
     }
 }
 
@@ -97,10 +93,10 @@ mod tests {
             "sunday".to_string(),
         ]);
 
-        let spell_checker: Levenshtein = Levenshtein::new(1, dictionary);
+        let spell_checker: Levenshtein = Levenshtein::new(1);
 
-        assert_eq!(spell_checker.find_suggestions("").len(), 1);
-        assert_eq!(spell_checker.find_suggestions("").get(0).unwrap().0, 6);
+        assert_eq!(spell_checker.get_matches(&dictionary, "").len(), 1);
+        assert_eq!(spell_checker.get_matches(&dictionary, "")[0].0, 6);
     }
 
     #[test]
@@ -112,12 +108,12 @@ mod tests {
             "sunday".to_string(),
         ]);
 
-        let spell_checker: Levenshtein = Levenshtein::new(1, dictionary);
+        let spell_checker: Levenshtein = Levenshtein::new(1);
 
-        assert_eq!(spell_checker.find_suggestions("kitten")[0].0, 0);
-        assert_eq!(spell_checker.find_suggestions("sitting")[0].0, 0);
-        assert_eq!(spell_checker.find_suggestions("saturday")[0].0, 0);
-        assert_eq!(spell_checker.find_suggestions("sunday")[0].0, 0);
+        assert_eq!(spell_checker.get_matches(&dictionary, "kitten")[0].0, 0);
+        assert_eq!(spell_checker.get_matches(&dictionary, "sitting")[0].0, 0);
+        assert_eq!(spell_checker.get_matches(&dictionary, "saturday")[0].0, 0);
+        assert_eq!(spell_checker.get_matches(&dictionary, "sunday")[0].0, 0);
     }
 
     #[test]
@@ -129,12 +125,12 @@ mod tests {
             "sunday".to_string(),
         ]);
 
-        let spell_checker: Levenshtein = Levenshtein::new(1, dictionary);
+        let spell_checker: Levenshtein = Levenshtein::new(1);
 
-        assert_eq!(spell_checker.find_suggestions("kittens")[0].0, 1);
-        assert_eq!(spell_checker.find_suggestions("sittin")[0].0, 1);
-        assert_eq!(spell_checker.find_suggestions("satyrday")[0].0, 1);
-        assert_eq!(spell_checker.find_suggestions("sundae")[0].0, 1);
+        assert_eq!(spell_checker.get_matches(&dictionary, "kittens")[0].0, 1);
+        assert_eq!(spell_checker.get_matches(&dictionary, "sittin")[0].0, 1);
+        assert_eq!(spell_checker.get_matches(&dictionary, "satyrday")[0].0, 1);
+        assert_eq!(spell_checker.get_matches(&dictionary, "sundae")[0].0, 1);
     }
 
     #[test]
@@ -146,12 +142,12 @@ mod tests {
             "sunday".to_string(),
         ]);
 
-        let spell_checker: Levenshtein = Levenshtein::new(2, dictionary);
+        let spell_checker: Levenshtein = Levenshtein::new(2);
 
-        assert_eq!(spell_checker.find_suggestions("kittens").len(), 2);
-        assert_eq!(spell_checker.find_suggestions("sittin").len(), 2);
-        assert_eq!(spell_checker.find_suggestions("satyrday").len(), 2);
-        assert_eq!(spell_checker.find_suggestions("sundae").len(), 2);
+        assert_eq!(spell_checker.get_matches(&dictionary, "kittens").len(), 2);
+        assert_eq!(spell_checker.get_matches(&dictionary, "sittin").len(), 2);
+        assert_eq!(spell_checker.get_matches(&dictionary, "satyrday").len(), 2);
+        assert_eq!(spell_checker.get_matches(&dictionary, "sundae").len(), 2);
     }
 
     #[test]
@@ -163,13 +159,13 @@ mod tests {
             "sunday".to_string(),
         ]);
 
-        let spell_checker: Levenshtein = Levenshtein::new(5, dictionary);
+        let spell_checker: Levenshtein = Levenshtein::new(5);
 
         // Returns all terms in the dictionary
-        assert_eq!(spell_checker.find_suggestions("kittens").len(), 4);
-        assert_eq!(spell_checker.find_suggestions("sittin").len(), 4);
-        assert_eq!(spell_checker.find_suggestions("satyrday").len(), 4);
-        assert_eq!(spell_checker.find_suggestions("sundae").len(), 4);
+        assert_eq!(spell_checker.get_matches(&dictionary, "kittens").len(), 4);
+        assert_eq!(spell_checker.get_matches(&dictionary, "sittin").len(), 4);
+        assert_eq!(spell_checker.get_matches(&dictionary, "satyrday").len(), 4);
+        assert_eq!(spell_checker.get_matches(&dictionary, "sundae").len(), 4);
     }
 
     #[test]
@@ -181,13 +177,13 @@ mod tests {
             "sunday".to_string(),
         ]);
 
-        let spell_checker: Levenshtein = Levenshtein::new(2, dictionary);
+        let spell_checker: Levenshtein = Levenshtein::new(2);
 
-        assert_eq!(spell_checker.find_suggestions("kittens")[0].0, 1);
-        assert_eq!(spell_checker.find_suggestions("kittens")[0].1, "kitten".to_string());
+        assert_eq!(spell_checker.get_matches(&dictionary, "kittens")[0].0, 1);
+        assert_eq!(spell_checker.get_matches(&dictionary, "kittens")[0].1, "kitten".to_string());
 
-        assert_eq!(spell_checker.find_suggestions("kittens")[1].0, 3);
-        assert_eq!(spell_checker.find_suggestions("kittens")[1].1, "sitting".to_string());
+        assert_eq!(spell_checker.get_matches(&dictionary, "kittens")[1].0, 3);
+        assert_eq!(spell_checker.get_matches(&dictionary, "kittens")[1].1, "sitting".to_string());
     }
 }
 
