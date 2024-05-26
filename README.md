@@ -10,6 +10,7 @@ A Command-Line spell checker tool implemented with clap, which checks the spelli
 
 ### Options
 
+```bash
 Options:
   -d, --dictionary_path <path>  Path to the dictionary file [default: ./dictionaries/google-10k-eng.txt]
   -v, --verbose                 Prints debug information verbosely
@@ -17,6 +18,7 @@ Options:
   -m, --mode <mode>             Mode to run the spell checker in [default: levenshtein]
   -h, --help                    Print help
   -V, --version                 Print version
+```
 
 ## Running tests
 
@@ -45,5 +47,6 @@ Options:
 - [x] InvalidSuggestionCount (should be greater than 0)
 
 ### Testing
-- [ ] Unit tests
-- [ ] CI/CD pipeline
+- [x] Unit tests
+- [x] CI/CD pipeline
+- [ ] Integration tests
