@@ -67,5 +67,53 @@ impl BKTree {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add_root() {
+        let mut tree = BKTree::new();
+        tree.add(&"hello".to_string());
+
+        assert_eq!(tree.root.is_some(), true);
+        assert_eq!(tree.root.as_ref().unwrap().word, "hello");
+    }
+
+    #[test]
+    fn test_add_child() {
+        let mut tree = BKTree::new();
+        tree.add(&"hello".to_string());
+        tree.add(&"hella".to_string());
+
+        let root = tree.root.as_ref().unwrap();
+        let child = root.get_child(1).unwrap();
+
+        assert_eq!(child.word, "hella");
+    }
+
+    #[test]
+    fn test_add_grandchild() {
+        let mut tree = BKTree::new();
+        tree.add(&"hello".to_string());
+        tree.add(&"hella".to_string());
+        tree.add(&"hallo".to_string());
+
+        let root = tree.root.as_ref().unwrap();
+        let child = root.get_child(1).unwrap();
+        let grandchild = child.get_child(2).unwrap();
+
+        assert_eq!(grandchild.word, "hallo");
+    }
+
+    #[test]
+    fn test_add_duplicate() {
+        let mut tree = BKTree::new();
+        tree.add(&"hello".to_string());
+        tree.add(&"hello".to_string());
+
+        let root = tree.root.as_ref().unwrap();
+
+        assert_eq!(root.children.len(), 0);
+    }
+}
