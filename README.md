@@ -5,7 +5,23 @@ A Command-Line spell checker tool implemented with clap, which checks the spelli
 ## Running the application
 
 ```bash
-    cargo run
+    cargo run -- [OPTIONS]
+```
+
+### Options
+
+Options:
+  -d, --dictionary_path <path>  Path to the dictionary file [default: ./dictionaries/google-10k-eng.txt]
+  -v, --verbose                 Prints debug information verbosely
+  -n, --default_matches <n>     Number of default matches to return [default: 5]
+  -m, --mode <mode>             Mode to run the spell checker in [default: levenshtein]
+  -h, --help                    Print help
+  -V, --version                 Print version
+
+## Running tests
+
+```bash
+    cargo test
 ```
 
 ## Roadmap
@@ -19,7 +35,7 @@ A Command-Line spell checker tool implemented with clap, which checks the spelli
 
 ### Algorithms
 - [x] Implement the Levenshtein distance algorithm
-- [ ] Implement BK-Tree algorithm
+- [x] Implement BK-Tree algorithm
 - [ ] Implement Norvig's algorithm
 
 ### Error Handling
@@ -30,3 +46,4 @@ A Command-Line spell checker tool implemented with clap, which checks the spelli
 
 ### Testing
 - [ ] Unit tests
+- [ ] CI/CD pipeline
