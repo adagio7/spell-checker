@@ -65,6 +65,35 @@ impl BKTree {
             }
         }
     }
+
+    fn search(&self, word: &String, max_distance: usize) -> Vec<String> {
+        let mut results = vec![];
+        let spell_checker = Levenshtein::new(1);
+
+        if self.root.is_none() {
+            panic!("The BK tree is empty, populate it first");
+        }
+
+        let mut stack = vec![self.root.as_ref().unwrap()];
+        while let Some(node) = stack.pop() {
+            let dist = spell_checker.distance(&node.word, word);
+
+            if dist <= max_distance {
+                results.push(node.word.clone());
+            }
+
+            let start = dist.checked_sub(max_distance).unwrap_or(0);
+            let end = dist + max_distance;
+
+            for i in start..=end {
+                if let Some(child) = node.get_child(i) {
+                    stack.push(child);
+                }
+            }
+        }
+
+        results
+    }
 }
 
 #[cfg(test)]
@@ -115,5 +144,139 @@ mod tests {
         let root = tree.root.as_ref().unwrap();
 
         assert_eq!(root.children.len(), 0);
+    }
+
+    #[test]
+    fn test_search_max_dist_one() {
+        let mut tree = BKTree::new();
+        tree.add(&"hello".to_string());
+        tree.add(&"hella".to_string());
+        tree.add(&"hallo".to_string());
+
+        let mut results = tree.search(&"hello".to_string(), 1);
+        let mut expected = vec!["hello", "hella", "hallo"];
+
+        results.sort();
+        expected.sort();
+        assert_eq!(results, expected);
+    }
+
+    #[test]
+    fn test_search_no_results() {
+        let mut tree = BKTree::new();
+        tree.add(&"hello".to_string());
+        tree.add(&"hella".to_string());
+        tree.add(&"hallo".to_string());
+
+        let mut results = tree.search(&"world".to_string(), 1);
+        let mut expected = vec![] as Vec<String>;
+
+        results.sort();
+        expected.sort();
+        assert_eq!(results, expected);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_search_empty_tree() {
+        let tree = BKTree::new();
+        tree.search(&"hello".to_string(), 1);
+    }
+
+    #[test]
+    fn test_search_max_dist_two() {
+        let mut tree = BKTree::new();
+        tree.add(&"hello".to_string());
+        tree.add(&"hella".to_string());
+        tree.add(&"hallo".to_string());
+        tree.add(&"halo".to_string());
+
+        let mut results = tree.search(&"hello".to_string(), 2);
+        let mut expected = vec!["hello", "hella", "hallo", "halo"];
+
+        results.sort();
+        expected.sort();
+        assert_eq!(results, expected);
+    }
+
+    #[test]
+    fn test_search_exact_match_present() {
+        let mut tree = BKTree::new();
+        tree.add(&"hello".to_string());
+        tree.add(&"hella".to_string());
+        tree.add(&"hallo".to_string());
+
+        let mut results = tree.search(&"hello".to_string(), 0);
+        let mut expected = vec!["hello"];
+
+        results.sort();
+        expected.sort();
+        assert_eq!(results, expected);
+    }
+
+    #[test]
+    fn test_search_non_present_exact_match() {
+        let mut tree = BKTree::new();
+        tree.add(&"hello".to_string());
+        tree.add(&"hella".to_string());
+        tree.add(&"hallo".to_string());
+
+        let results = tree.search(&"world".to_string(), 0);
+        let expected = vec![] as Vec<String>;
+
+        assert_eq!(results, expected);
+    }
+
+    #[test]
+    fn test_search_case_sensitive() {
+        let mut tree = BKTree::new();
+        tree.add(&"hello".to_string());
+        tree.add(&"hella".to_string());
+        tree.add(&"hallo".to_string());
+
+        let results = tree.search(&"HELLO".to_string(), 0);
+        let expected = vec![] as Vec<String>;
+
+        assert_eq!(results, expected);
+    }
+
+    #[test]
+    fn test_search_no_match() {
+        let mut tree = BKTree::new();
+        tree.add(&"hello".to_string());
+        tree.add(&"hella".to_string());
+        tree.add(&"hallo".to_string());
+
+        let results = tree.search(&"world".to_string(), 2);
+
+        assert_eq!(results, vec![] as Vec<String>);
+    }
+
+    #[test]
+    fn test_search_empty_string() {
+        let mut tree = BKTree::new();
+        tree.add(&"hello".to_string());
+        tree.add(&"hella".to_string());
+        tree.add(&"hallo".to_string());
+
+        let results = tree.search(&"".to_string(), 4);
+        let expected = vec![] as Vec<String>;
+
+        assert_eq!(results, expected);
+    }
+
+    #[test]
+    fn test_search_match_prefix() {
+        let mut tree = BKTree::new();
+        tree.add(&"hello".to_string());
+        tree.add(&"hella".to_string());
+        tree.add(&"hallo".to_string());
+
+        let mut results = tree.search(&"hell".to_string(), 1);
+        let mut expected = vec!["hello", "hella"];
+
+        results.sort();
+        expected.sort();
+        assert_eq!(results, expected);
     }
 }
