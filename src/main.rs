@@ -6,6 +6,7 @@ mod algorithms;
 
 use utils::{ load_dictionary, create_spellchecker };
 use algorithms::base::SpellChecker;
+use algorithms::bk_tree::BKTree;
 
 fn main() {
     // TODO: Let user specify the dictionary module_path!
@@ -36,11 +37,16 @@ fn main() {
 
     let dictionary: Result<Hashset<String>, std::io::Error> = load_dictionary(matches.get_one::<String>("dictionary_path").unwrap());
 
-    let spell_checker: Box<dyn SpellChecker> = 
-                create_spellchecker(
-                    matches.get_one::<String>("mode").unwrap(),
-                    matches.get_one::<String>("default_matches").unwrap().parse().unwrap(),
-                ).unwrap();
+    // let spell_checker: Box<dyn SpellChecker> = 
+    //             create_spellchecker(
+    //                 matches.get_one::<String>("mode").unwrap(),
+    //                 matches.get_one::<String>("default_matches").unwrap().parse().unwrap(),
+    //             ).unwrap();
+    //
+    // println!("{:?}", spell_checker.get_matches(&dictionary.unwrap(), "helo"));
 
-    println!("{:?}", spell_checker.get_matches(&dictionary.unwrap(), "helo"));
+    let mut spell_checker = BKTree::new();
+    spell_checker.load_dictionary(&dictionary.unwrap());
+
+    println!("{:?}", spell_checker.search("helo", 2));
 }

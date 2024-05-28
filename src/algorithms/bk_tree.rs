@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{ HashSet, HashMap};
 
 use crate::algorithms::base::SpellChecker;
 use crate::algorithms::levenshtein::Levenshtein;
@@ -29,12 +29,12 @@ impl Node {
     }
 }
 
-struct BKTree {
+pub struct BKTree {
     root: Option<Node> 
 }
 
 impl BKTree {
-    fn new() -> BKTree {
+    pub fn new() -> BKTree {
         BKTree { root: None }
     }
 
@@ -66,7 +66,14 @@ impl BKTree {
         }
     }
 
-    fn search(&self, word: &String, max_distance: usize) -> Vec<String> {
+    pub fn load_dictionary(&mut self, dictionary: &HashSet<String>) -> () {
+        for word in dictionary.iter() {
+            self.add(word);
+        }
+    }
+
+
+    pub fn search(&self, word: &str, max_distance: usize) -> Vec<String> {
         let mut results = vec![];
         let spell_checker = Levenshtein::new(1);
 
