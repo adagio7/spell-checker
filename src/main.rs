@@ -1,4 +1,6 @@
 use clap::{ arg, command };
+use std::fs::File;
+use std::io::{ BufRead, BufReader };
 use std::collections::HashSet as Hashset;
 
 mod utils;
@@ -7,6 +9,26 @@ mod algorithms;
 use utils::{ load_dictionary, create_spellchecker };
 use algorithms::base::SpellChecker;
 use algorithms::bk_tree::BKTree;
+
+fn correct_file(file_path: &str, spell_checker: &BKTree) {
+    // Goes through the file and identify the spell errors
+    
+    let file = File::open(file_path)
+                    .expect("Could not open file");
+
+    let reader = BufReader::new(file);
+
+    for (i, line) in reader.lines().enumerate() {
+        let line = line.unwrap();
+        let words = line.split_whitespace();
+
+        for (j, word) in words.enumerate() {
+            if spell_checker.search(word, 1)[0] != word {
+                println!("Line {} Word {}: Misspelled {}, Suggested: {}", i, j, word, spell_checker.search(word, 1)[0]);
+            }
+        }
+    } 
+}
 
 fn main() {
     // TODO: Let user specify the dictionary module_path!
@@ -47,6 +69,8 @@ fn main() {
 
     let mut spell_checker = BKTree::new();
     spell_checker.load_dictionary(&dictionary.unwrap());
+
+    correct_file("./text/fable1.txt", &spell_checker);
 
     println!("{:?}", spell_checker.search("helo", 2));
 }
