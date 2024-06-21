@@ -6,8 +6,7 @@ use std::collections::HashSet as Hashset;
 mod utils;
 mod algorithms;
 
-use utils::{ load_dictionary, create_spellchecker };
-use algorithms::base::SpellChecker;
+use utils::{ bk_factory, filter_alphabet, load_dictionary };
 use algorithms::bk_tree::BKTree;
 
 fn correct_file(file_path: &str, spell_checker: &BKTree) {
@@ -23,8 +22,10 @@ fn correct_file(file_path: &str, spell_checker: &BKTree) {
         let words = line.split_whitespace();
 
         for (j, word) in words.enumerate() {
-            if spell_checker.search(word, 1)[0] != word {
-                println!("Line {} Word {}: Misspelled {}, Suggested: {}", i, j, word, spell_checker.search(word, 1)[0]);
+            let cleaned_word = filter_alphabet(&word);
+            let results = spell_checker.search(&cleaned_word, 1);
+            if results.len() != 0 && !results.contains(&cleaned_word.to_string()) {
+                println!("Line {} Word {}: Misspelled {}, Suggested: {}", i, j, cleaned_word, results[0]);
             }
         }
     } 
@@ -59,6 +60,15 @@ fn main() {
 
     let dictionary: Result<Hashset<String>, std::io::Error> = load_dictionary(matches.get_one::<String>("dictionary_path").unwrap());
 
+    let mut spell_checker = bk_factory(
+        matches.get_one::<String>("mode").unwrap(),
+        matches.get_one::<String>("default_matches").unwrap().parse().unwrap(),
+    );
+
+    spell_checker.load_dictionary(&dictionary.unwrap());
+
+    correct_file("text/fable1.txt", &spell_checker);
+
     // let spell_checker: Box<dyn SpellChecker> = 
     //             create_spellchecker(
     //                 matches.get_one::<String>("mode").unwrap(),
@@ -67,10 +77,11 @@ fn main() {
     //
     // println!("{:?}", spell_checker.get_matches(&dictionary.unwrap(), "helo"));
 
-    let mut spell_checker = BKTree::new();
-    spell_checker.load_dictionary(&dictionary.unwrap());
-
-    correct_file("./text/fable1.txt", &spell_checker);
-
-    println!("{:?}", spell_checker.search("helo", 2));
+    // let leven = algorithms::levenshtein::Levenshtein::new(1);
+    // let mut spell_checker = BKTree::new(leven);
+    // spell_checker.load_dictionary(&dictionary.unwrap());
+    //
+    // correct_file("./text/fable1.txt", &spell_checker);
+    //
+    // println!("{:?}", spell_checker.search("helo", 2));
 }

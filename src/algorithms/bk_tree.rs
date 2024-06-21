@@ -1,5 +1,6 @@
 use std::collections::{ HashSet, HashMap};
 
+use crate::utils::{capitalize_first_letter, filter_alphabet};
 use crate::algorithms::base::SpellChecker;
 
 struct Node {
@@ -70,7 +71,12 @@ impl BKTree {
 
     pub fn load_dictionary(&mut self, dictionary: &HashSet<String>) -> () {
         for word in dictionary.iter() {
-            self.add(word);
+            // Clean the word of any non-alphabetic characters
+            let cleaned_word = filter_alphabet(&word);
+
+            // Add both the base word and capitialized word to the tree
+            self.add(&cleaned_word);
+            self.add(&capitalize_first_letter(&cleaned_word));
         }
     }
 
@@ -78,13 +84,18 @@ impl BKTree {
     pub fn search(&self, word: &str, max_distance: usize) -> Vec<String> {
         let mut results = vec![];
 
+        let cleaned_word = word
+                                .chars()
+                                .filter(|c| c.is_alphabetic())
+                                .collect::<String>();
+
         if self.root.is_none() {
             panic!("The BK tree is empty, populate it first");
         }
 
         let mut stack = vec![self.root.as_ref().unwrap()];
         while let Some(node) = stack.pop() {
-            let dist = self.spell_checker.distance(&node.word, word);
+            let dist = self.spell_checker.distance(&node.word, &cleaned_word);
 
             if dist <= max_distance {
                 results.push(node.word.clone());
@@ -313,5 +324,14 @@ mod tests {
         results.sort();
         expected.sort();
         assert_eq!(results, expected);
+    }
+
+    #[test]
+    fn test_capitalize_first_letter() {
+        let spell_checker = Box::new(Levenshtein::new(1));
+        let tree = BKTree::new(spell_checker);
+
+        let result = tree._capitilize_first_letter("hello");
+        assert_eq!(result, "Hello");
     }
 }

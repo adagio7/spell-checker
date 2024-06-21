@@ -3,7 +3,7 @@ use std::collections::{ HashSet, BinaryHeap };
 
 use crate::algorithms::base::SpellChecker;
 
-struct Lcs {
+pub struct Lcs {
     pub default_matches: usize,
 }
 

@@ -1,10 +1,12 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader, Result};
-use std::collections::HashSet;
+use std::collections::{HashSet};
 
+use crate::algorithms::bk_tree::BKTree;
 use crate::algorithms::base::SpellChecker;
 use crate::algorithms::levenshtein::Levenshtein;
-// use crate::algorithms::
+use crate::algorithms::lcs::Lcs;
+use crate::algorithms::hamming::Hamming;
 
 pub fn load_dictionary(filename: &str) -> Result<HashSet<String>> {
     // Open the file in read-only mode
@@ -23,15 +25,35 @@ pub fn load_dictionary(filename: &str) -> Result<HashSet<String>> {
     Ok(dictionary)
 }
 
-pub fn create_spellchecker(
+pub fn bk_factory(
         algorithm: &str,
         top_matches: usize,
-    ) -> Option<Box<dyn SpellChecker>>{
+    ) -> BKTree {
     // Create a spellchecker based on the algorithm provided
 
-    match algorithm {
-        "levenshtein" => Some(Box::new(Levenshtein::new(top_matches)) as Box<dyn SpellChecker>),
+    let spell_checker = match algorithm {
+        "levenshtein" => Box::new(Levenshtein::new(top_matches)) as Box<dyn SpellChecker>,
+        "lcs" => Box::new(Lcs::new(top_matches)) as Box<dyn SpellChecker>,
+        "hamming" => Box::new(Hamming::new(top_matches)) as Box<dyn SpellChecker>,
 
         _ => panic!("Algorithm not found")
+    };
+
+    BKTree::new(spell_checker)
+}
+
+pub fn capitalize_first_letter(word: &str) -> String {
+    let mut chars = word.chars();
+    match chars.next() {
+        None => String::new(),
+        Some(f) => f.to_uppercase().collect::<String>() + chars.as_str(),
     }
+}
+
+pub fn filter_alphabet(word: &str) -> String {
+    // Filter out non-alphabetic characters from the word
+    word
+        .chars()
+        .filter(|c| c.is_alphabetic())
+        .collect::<String>()
 }
