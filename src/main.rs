@@ -22,9 +22,10 @@ fn correct_file(file_path: &str, spell_checker: &BKTree) {
         let words = line.split_whitespace();
 
         for (j, word) in words.enumerate() {
-            let cleaned_word = filter_alphabet(&word);
+            let cleaned_word = filter_alphabet(word);
             let results = spell_checker.search(&cleaned_word, 1);
-            if results.len() != 0 && !results.contains(&cleaned_word.to_string()) {
+
+            if !results.is_empty() && !results.contains(&cleaned_word.to_string()) {
                 println!("Line {} Word {}: Misspelled {}, Suggested: {}", i, j, cleaned_word, results[0]);
             }
         }
@@ -32,15 +33,14 @@ fn correct_file(file_path: &str, spell_checker: &BKTree) {
 }
 
 fn main() {
-    // TODO: Let user specify the dictionary module_path!
-    // TODO: Let user specify the algorithm to use!
-    // TODO: Let user toggle default matches
-
     let matches =
         command!("spell_check")
             .arg(
                 arg!(-d --dictionary_path <path> "Path to the dictionary file")
                     .default_value("./dictionaries/google-10k-eng.txt")
+            )
+            .arg(
+                arg!(-t --text_path <path> "Path to the text file to spell check")
             )
             .arg(
                 arg!(-v --verbose "Prints debug information verbosely")
@@ -67,21 +67,8 @@ fn main() {
 
     spell_checker.load_dictionary(&dictionary.unwrap());
 
-    correct_file("text/fable1.txt", &spell_checker);
-
-    // let spell_checker: Box<dyn SpellChecker> = 
-    //             create_spellchecker(
-    //                 matches.get_one::<String>("mode").unwrap(),
-    //                 matches.get_one::<String>("default_matches").unwrap().parse().unwrap(),
-    //             ).unwrap();
-    //
-    // println!("{:?}", spell_checker.get_matches(&dictionary.unwrap(), "helo"));
-
-    // let leven = algorithms::levenshtein::Levenshtein::new(1);
-    // let mut spell_checker = BKTree::new(leven);
-    // spell_checker.load_dictionary(&dictionary.unwrap());
-    //
-    // correct_file("./text/fable1.txt", &spell_checker);
-    //
-    // println!("{:?}", spell_checker.search("helo", 2));
+    correct_file(
+        matches.get_one::<String>("text_path").unwrap(),
+        &spell_checker,
+    );
 }

@@ -1,6 +1,6 @@
 use std::fs::File;
-use std::io::{BufRead, BufReader, Result};
-use std::collections::{HashSet};
+use std::io::{ BufRead, BufReader, Result };
+use std::collections::HashSet;
 
 use crate::algorithms::bk_tree::BKTree;
 use crate::algorithms::base::SpellChecker;
@@ -56,4 +56,30 @@ pub fn filter_alphabet(word: &str) -> String {
         .chars()
         .filter(|c| c.is_alphabetic())
         .collect::<String>()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_filter_alphabet() {
+        assert_eq!(filter_alphabet("hello"), "hello");
+        assert_eq!(filter_alphabet("hello!"), "hello");
+        assert_eq!(filter_alphabet("hello123"), "hello");
+        assert_eq!(filter_alphabet("hello!@#123"), "hello");
+    }
+
+    #[test]
+    fn test_capitalize_first_lette() {
+        assert_eq!(capitalize_first_letter("hello"), "Hello");
+        assert_eq!(capitalize_first_letter("Hello"), "Hello");
+        assert_eq!(capitalize_first_letter("hELLO"), "HELLO");
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_bk_factory_unknown_checker() {
+        bk_factory("unknown", 3);
+    }
 }

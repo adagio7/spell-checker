@@ -42,7 +42,7 @@ impl BKTree {
         }
     }
 
-    fn add(&mut self, word: &String) -> () {
+    fn add(&mut self, word: &String) {
         // Initialize the root node if it doesn't exist
         if self.root.is_none() {
             self.root = Some(Node::new(word.to_string()));
@@ -69,10 +69,10 @@ impl BKTree {
         }
     }
 
-    pub fn load_dictionary(&mut self, dictionary: &HashSet<String>) -> () {
+    pub fn load_dictionary(&mut self, dictionary: &HashSet<String>) {
         for word in dictionary.iter() {
             // Clean the word of any non-alphabetic characters
-            let cleaned_word = filter_alphabet(&word);
+            let cleaned_word = filter_alphabet(word);
 
             // Add both the base word and capitialized word to the tree
             self.add(&cleaned_word);
@@ -101,10 +101,10 @@ impl BKTree {
                 results.push(node.word.clone());
             }
 
-            let start = dist.checked_sub(max_distance).unwrap_or(0);
+            let start = dist.saturating_sub(max_distance);
             let end = dist + max_distance;
 
-            for i in start..=end {
+            for i in start..=end{
                 if let Some(child) = node.get_child(i) {
                     stack.push(child);
                 }
@@ -324,14 +324,5 @@ mod tests {
         results.sort();
         expected.sort();
         assert_eq!(results, expected);
-    }
-
-    #[test]
-    fn test_capitalize_first_letter() {
-        let spell_checker = Box::new(Levenshtein::new(1));
-        let tree = BKTree::new(spell_checker);
-
-        let result = tree._capitilize_first_letter("hello");
-        assert_eq!(result, "Hello");
     }
 }
