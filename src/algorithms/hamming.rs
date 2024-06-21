@@ -11,16 +11,15 @@ impl Hamming {
     pub fn new(
         default_matches: usize
     ) -> Self {
-        assert!(default_matches >= 0);
-
+        // Note that usize by default can't be negative, so no check needed
         Hamming { default_matches }
     }
 }
 
 impl SpellChecker for Hamming {
-
     /// The hamming distance is a string metric for measuring the difference between two sequences.
     /// It is the minimum number of single-character edits (insertions, deletions, or substitutions) required to change one word into the other.
+
     fn distance(
         &self,
         word: &str,
