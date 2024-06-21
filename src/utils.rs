@@ -4,6 +4,7 @@ use std::collections::HashSet;
 
 use crate::algorithms::base::SpellChecker;
 use crate::algorithms::levenshtein::Levenshtein;
+// use crate::algorithms::
 
 pub fn load_dictionary(filename: &str) -> Result<HashSet<String>> {
     // Open the file in read-only mode
@@ -30,6 +31,7 @@ pub fn create_spellchecker(
 
     match algorithm {
         "levenshtein" => Some(Box::new(Levenshtein::new(top_matches)) as Box<dyn SpellChecker>),
+
         _ => panic!("Algorithm not found")
     }
 }

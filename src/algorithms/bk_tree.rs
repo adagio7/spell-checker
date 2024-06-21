@@ -1,7 +1,6 @@
 use std::collections::{ HashSet, HashMap};
 
 use crate::algorithms::base::SpellChecker;
-use crate::algorithms::levenshtein::Levenshtein;
 
 struct Node {
     word: String,
@@ -30,12 +29,16 @@ impl Node {
 }
 
 pub struct BKTree {
-    root: Option<Node> 
+    root: Option<Node>,
+    spell_checker: Box<dyn SpellChecker>,
 }
 
 impl BKTree {
-    pub fn new() -> BKTree {
-        BKTree { root: None }
+    pub fn new(spell_checker: Box<dyn SpellChecker>) -> BKTree {
+        BKTree {
+            root: None,
+            spell_checker,
+        }
     }
 
     fn add(&mut self, word: &String) -> () {
@@ -47,10 +50,9 @@ impl BKTree {
 
         // Note that we already checked that the root is not None
         let mut curr: &mut Node = self.root.as_mut().unwrap();
-        let spell_checker = Levenshtein::new(1);
 
         loop {
-            let dist = spell_checker.distance(&curr.word, word);
+            let dist = self.spell_checker.distance(&curr.word, word);
 
             // If the distance is 0, the word is already in the tree
             if dist == 0 {
@@ -75,7 +77,6 @@ impl BKTree {
 
     pub fn search(&self, word: &str, max_distance: usize) -> Vec<String> {
         let mut results = vec![];
-        let spell_checker = Levenshtein::new(1);
 
         if self.root.is_none() {
             panic!("The BK tree is empty, populate it first");
@@ -83,7 +84,7 @@ impl BKTree {
 
         let mut stack = vec![self.root.as_ref().unwrap()];
         while let Some(node) = stack.pop() {
-            let dist = spell_checker.distance(&node.word, word);
+            let dist = self.spell_checker.distance(&node.word, word);
 
             if dist <= max_distance {
                 results.push(node.word.clone());
@@ -106,10 +107,12 @@ impl BKTree {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::algorithms::levenshtein::Levenshtein;
 
     #[test]
     fn test_add_root() {
-        let mut tree = BKTree::new();
+        let spell_checker = Box::new(Levenshtein::new(1));
+        let mut tree = BKTree::new(spell_checker);
         tree.add(&"hello".to_string());
 
         assert_eq!(tree.root.is_some(), true);
@@ -118,7 +121,8 @@ mod tests {
 
     #[test]
     fn test_add_child() {
-        let mut tree = BKTree::new();
+        let spell_checker = Box::new(Levenshtein::new(1));
+        let mut tree = BKTree::new(spell_checker);
         tree.add(&"hello".to_string());
         tree.add(&"hella".to_string());
 
@@ -130,7 +134,9 @@ mod tests {
 
     #[test]
     fn test_add_grandchild() {
-        let mut tree = BKTree::new();
+        let spell_checker = Box::new(Levenshtein::new(1));
+        let mut tree = BKTree::new(spell_checker);
+
         tree.add(&"hello".to_string());
         tree.add(&"hella".to_string());
         tree.add(&"hallo".to_string());
@@ -144,7 +150,9 @@ mod tests {
 
     #[test]
     fn test_add_duplicate() {
-        let mut tree = BKTree::new();
+        let spell_checker = Box::new(Levenshtein::new(1));
+        let mut tree = BKTree::new(spell_checker);
+
         tree.add(&"hello".to_string());
         tree.add(&"hello".to_string());
 
@@ -155,7 +163,9 @@ mod tests {
 
     #[test]
     fn test_search_max_dist_one() {
-        let mut tree = BKTree::new();
+        let spell_checker = Box::new(Levenshtein::new(1));
+        let mut tree = BKTree::new(spell_checker);
+
         tree.add(&"hello".to_string());
         tree.add(&"hella".to_string());
         tree.add(&"hallo".to_string());
@@ -170,7 +180,9 @@ mod tests {
 
     #[test]
     fn test_search_no_results() {
-        let mut tree = BKTree::new();
+        let spell_checker = Box::new(Levenshtein::new(1));
+        let mut tree = BKTree::new(spell_checker);
+
         tree.add(&"hello".to_string());
         tree.add(&"hella".to_string());
         tree.add(&"hallo".to_string());
@@ -186,13 +198,17 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_search_empty_tree() {
-        let tree = BKTree::new();
+        let spell_checker = Box::new(Levenshtein::new(1));
+        let tree = BKTree::new(spell_checker);
+
         tree.search(&"hello".to_string(), 1);
     }
 
     #[test]
     fn test_search_max_dist_two() {
-        let mut tree = BKTree::new();
+        let spell_checker = Box::new(Levenshtein::new(1));
+        let mut tree = BKTree::new(spell_checker);
+
         tree.add(&"hello".to_string());
         tree.add(&"hella".to_string());
         tree.add(&"hallo".to_string());
@@ -208,7 +224,9 @@ mod tests {
 
     #[test]
     fn test_search_exact_match_present() {
-        let mut tree = BKTree::new();
+        let spell_checker = Box::new(Levenshtein::new(1));
+        let mut tree = BKTree::new(spell_checker);
+
         tree.add(&"hello".to_string());
         tree.add(&"hella".to_string());
         tree.add(&"hallo".to_string());
@@ -223,7 +241,9 @@ mod tests {
 
     #[test]
     fn test_search_non_present_exact_match() {
-        let mut tree = BKTree::new();
+        let spell_checker = Box::new(Levenshtein::new(1));
+        let mut tree = BKTree::new(spell_checker);
+
         tree.add(&"hello".to_string());
         tree.add(&"hella".to_string());
         tree.add(&"hallo".to_string());
@@ -236,7 +256,9 @@ mod tests {
 
     #[test]
     fn test_search_case_sensitive() {
-        let mut tree = BKTree::new();
+        let spell_checker = Box::new(Levenshtein::new(1));
+        let mut tree = BKTree::new(spell_checker);
+
         tree.add(&"hello".to_string());
         tree.add(&"hella".to_string());
         tree.add(&"hallo".to_string());
@@ -249,7 +271,9 @@ mod tests {
 
     #[test]
     fn test_search_no_match() {
-        let mut tree = BKTree::new();
+        let spell_checker = Box::new(Levenshtein::new(1));
+        let mut tree = BKTree::new(spell_checker);
+
         tree.add(&"hello".to_string());
         tree.add(&"hella".to_string());
         tree.add(&"hallo".to_string());
@@ -261,7 +285,9 @@ mod tests {
 
     #[test]
     fn test_search_empty_string() {
-        let mut tree = BKTree::new();
+        let spell_checker = Box::new(Levenshtein::new(1));
+        let mut tree = BKTree::new(spell_checker);
+
         tree.add(&"hello".to_string());
         tree.add(&"hella".to_string());
         tree.add(&"hallo".to_string());
@@ -274,7 +300,9 @@ mod tests {
 
     #[test]
     fn test_search_match_prefix() {
-        let mut tree = BKTree::new();
+        let spell_checker = Box::new(Levenshtein::new(1));
+        let mut tree = BKTree::new(spell_checker);
+
         tree.add(&"hello".to_string());
         tree.add(&"hella".to_string());
         tree.add(&"hallo".to_string());

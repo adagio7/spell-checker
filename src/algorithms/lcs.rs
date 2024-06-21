@@ -97,4 +97,36 @@ mod tests {
         assert_eq!(lcs.distance("kitten", ""), 6);
         assert_eq!(lcs.distance("", "kitten"), 6);
     }
+
+    #[test]
+    fn test_lcs_get_matches() {
+        let lcs = Lcs::new(2);
+        let dictionary: HashSet<String> = HashSet::from_iter(vec![
+            "kitten".to_string(),
+            "sitting".to_string(),
+            "cat".to_string(),
+            "cut".to_string(),
+            "abcdef".to_string(),
+        ]);
+
+        assert_eq!(lcs.get_matches(&dictionary, "kitten"), vec![(0, "kitten".to_string()), (5, "sitting".to_string())]);
+        assert_eq!(lcs.get_matches(&dictionary, "sittin"), vec![(1, "sitting".to_string()), (4, "kitten".to_string())]);
+        assert_eq!(lcs.get_matches(&dictionary, "catt"), vec![(1, "cat".to_string()), (3, "cut".to_string())]);
+        assert_eq!(lcs.get_matches(&dictionary, "acbcf"), vec![(3, "abcdef".to_string()), (6, "cat".to_string())]);
+    }
+
+    #[test]
+    fn test_lcs_get_zero_matches() {
+        let lcs = Lcs::new(0);
+
+        let dictionary: HashSet<String> = HashSet::from_iter(vec![
+            "kitten".to_string(),
+            "sitting".to_string(),
+            "cat".to_string(),
+            "cut".to_string(),
+            "abcdef".to_string(),
+        ]);
+
+        assert_eq!(lcs.get_matches(&dictionary, "kitten"), vec![]);
+    }
 }
